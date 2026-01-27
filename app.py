@@ -99,6 +99,12 @@ section[data-testid="stSidebar"] input {
     border: 1px solid #d1d5db !important;
 }
 
+/* Remove sidebar internal scrolling */
+section[data-testid="stSidebar"] > div:first-child {
+    height: 100vh !important;
+    overflow: hidden !important;
+}
+
 /* Fix the +/- increment buttons - STRONGER SELECTORS */
 section[data-testid="stSidebar"] div[data-baseweb="input"] button,
 section[data-testid="stSidebar"] button[kind="stepperButton"],
@@ -215,13 +221,13 @@ if st.sidebar.button("Predict Crime Risk"):
     recommendation = patrol_recommendation(prediction)
     st.sidebar.info(f"Patrol Recommendation: {recommendation}")
 
-for _ in range(10):   # increase number to push further down
+for _ in range(1):   # increase number to push further down
     st.sidebar.write("")
 # Sidebar Footer (Always Visible)
 st.sidebar.markdown("---")
 st.sidebar.markdown(
     "<p style='text-align:center; color:#9ca3af; font-size:13px;'>"
-    "Team – Neural Navigators ~ VSIT"
+    "Team – Neural Navigators ~ VSIT 2026"
     "</p>",
     unsafe_allow_html=True
 )
