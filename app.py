@@ -257,12 +257,13 @@ def night_crime_ratio(df, cluster_id):
     return len(night_crimes) / max(len(cluster_data), 1)
 
 def classify_risk(ratio):
-    if ratio > 0.6:
+    if ratio > 0.55:
         return "RED"
-    elif ratio > 0.35:
+    elif ratio > 0.30:
         return "YELLOW"
     else:
         return "GREEN"
+
 
 def hotspot_recommendation(risk):
     if risk == "RED":
@@ -313,15 +314,16 @@ for cluster_id in df["cluster"].unique():
     ).add_to(crime_map)
 
 # Add marker for predicted location with color based on risk
+# ---------------- PREDICTION MARKER WITH CRIME REASON ----------------
 if "prediction_location" in st.session_state and "prediction_risk" in st.session_state:
     lat, lon = st.session_state["prediction_location"]
-    risk_level = st.session_state["prediction_risk"]
+    prediction = int(st.session_state["prediction_risk"])
 
-    color_map = {
-        0: "green",   # Low Risk
-        1: "orange",  # Medium Risk
-        2: "red"      # High Risk
-    }
+    # Safety clamp (in case model returns weird value)
+    if prediction > 2:
+        prediction = 2
+    if prediction < 0:
+        prediction = 0
 
     risk_labels = {
         0: "Low Risk",
@@ -329,11 +331,36 @@ if "prediction_location" in st.session_state and "prediction_risk" in st.session
         2: "High Risk"
     }
 
+    color_map = {
+        0: "green",
+        1: "orange",
+        2: "red"
+    }
+
+    # ---- Find nearest cluster to this predicted point ----
+    def get_nearest_cluster(lat, lon, df):
+        temp_df = df.copy()
+        temp_df["distance"] = ((temp_df["latitude"] - lat)**2 + (temp_df["longitude"] - lon)**2)
+        return temp_df.loc[temp_df["distance"].idxmin(), "cluster"]
+
+    nearest_cluster = get_nearest_cluster(lat, lon, df)
+
+    # ---- Get top crime types in that cluster ----
+    cluster_crimes = df[df["cluster"] == nearest_cluster]["crime_type"]
+    top_crimes = cluster_crimes.value_counts().head(3).index.tolist()
+    crime_reason = ", ".join(top_crimes)
+
+    # ---- Add marker ----
     folium.Marker(
         location=[lat, lon],
-        popup=f"<b>Predicted Location</b><br>Risk Level: {risk_labels.get(risk_level)}",
-        icon=folium.Icon(color=color_map.get(risk_level, "blue"), icon="info-sign"),
+        popup=f"""
+        <b>Predicted Location</b><br>
+        Risk Level: {risk_labels[prediction]}<br>
+        <b>Main Crimes:</b> {crime_reason}
+        """,
+        icon=folium.Icon(color=color_map[prediction])
     ).add_to(crime_map)
+
 
 st.components.v1.html(
     crime_map._repr_html_(),
