@@ -96,9 +96,12 @@ section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
 section[data-testid="stSidebar"] input {
     background-color: white !important;
     color: #1f2937 !important;
-    border: 1px solid #d1d5db !important;
+    border: 1px solid #d1d5db;
+    caret-color: black
 }
 
+
+            
 /* Remove sidebar internal scrolling */
 section[data-testid="stSidebar"] > div:first-child {
     height: 100vh !important;
