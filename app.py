@@ -283,7 +283,12 @@ crime_map = folium.Map(location=map_center, zoom_start=zoom_level, control_scale
 
 
 
-marker_cluster = MarkerCluster().add_to(crime_map)
+marker_cluster = MarkerCluster(
+    disableClusteringAtZoom=16,
+    maxClusterRadius=70
+).add_to(crime_map)
+
+
 for _, row in df.iterrows():
     folium.Marker(
         location=[row["latitude"], row["longitude"]],
@@ -294,6 +299,7 @@ for _, row in df.iterrows():
         """,
         icon=folium.Icon(color="blue", icon="info-sign"),
     ).add_to(marker_cluster)
+
 
 for cluster_id in df["cluster"].unique():
     cluster_df = df[df["cluster"] == cluster_id]
@@ -313,30 +319,17 @@ for cluster_id in df["cluster"].unique():
         popup=f"<b>{risk} Risk Area</b><br>Patrol: {patrol}"
     ).add_to(crime_map)
 
-# Add marker for predicted location with color based on risk
-# ---------------- PREDICTION MARKER WITH CRIME REASON ----------------
-# ---------------- PREDICTION MARKER WITH CRIME REASON ----------------
+# ---------------- PREDICTION MARKER ----------------
 if "prediction_location" in st.session_state and "prediction_risk" in st.session_state:
 
     lat, lon = st.session_state["prediction_location"]
     prediction = int(st.session_state["prediction_risk"])
 
-    # Safety clamp
     prediction = max(0, min(2, prediction))
 
-    risk_labels = {
-        0: "Low Risk",
-        1: "Medium Risk",
-        2: "High Risk"
-    }
+    risk_labels = {0: "Low Risk", 1: "Medium Risk", 2: "High Risk"}
+    color_map = {0: "green", 1: "orange", 2: "red"}
 
-    color_map = {
-        0: "green",
-        1: "orange",
-        2: "red"
-    }
-
-    # ---- Find nearest cluster ----
     def get_nearest_cluster(lat, lon, df):
         temp_df = df.copy()
         temp_df["distance"] = ((temp_df["latitude"] - lat)**2 + (temp_df["longitude"] - lon)**2)
@@ -344,18 +337,16 @@ if "prediction_location" in st.session_state and "prediction_risk" in st.session
 
     nearest_cluster = get_nearest_cluster(lat, lon, df)
 
-    # ---- Get top incident types ----
     cluster_crimes = df[df["cluster"] == nearest_cluster]["crime_type"]
     top_crimes = cluster_crimes.value_counts().head(3).index.tolist()
     crime_reason = ", ".join(top_crimes)
 
-    # ---- Area type detection ----
     if "Accident" in top_crimes:
         area_type = "Accident-Prone Area"
     else:
         area_type = "Crime-Prone Area"
 
-    # ---- Add prediction marker ----
+
     folium.Marker(
         location=[lat, lon],
         popup=f"""
@@ -364,8 +355,8 @@ if "prediction_location" in st.session_state and "prediction_risk" in st.session
         <b>Risk Level:</b> {risk_labels[prediction]}<br>
         <b>Main Incidents:</b> {crime_reason}
         """,
-        icon=folium.Icon(color=color_map[prediction])
-    ).add_to(crime_map)
+        icon=folium.Icon(color=color_map[prediction], icon="warning-sign"),
+    ).add_to(marker_cluster)
 
 
 st.components.v1.html(
