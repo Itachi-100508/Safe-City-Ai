@@ -315,15 +315,14 @@ for cluster_id in df["cluster"].unique():
 
 # Add marker for predicted location with color based on risk
 # ---------------- PREDICTION MARKER WITH CRIME REASON ----------------
+# ---------------- PREDICTION MARKER WITH CRIME REASON ----------------
 if "prediction_location" in st.session_state and "prediction_risk" in st.session_state:
+
     lat, lon = st.session_state["prediction_location"]
     prediction = int(st.session_state["prediction_risk"])
 
-    # Safety clamp (in case model returns weird value)
-    if prediction > 2:
-        prediction = 2
-    if prediction < 0:
-        prediction = 0
+    # Safety clamp
+    prediction = max(0, min(2, prediction))
 
     risk_labels = {
         0: "Low Risk",
@@ -337,7 +336,7 @@ if "prediction_location" in st.session_state and "prediction_risk" in st.session
         2: "red"
     }
 
-    # ---- Find nearest cluster to this predicted point ----
+    # ---- Find nearest cluster ----
     def get_nearest_cluster(lat, lon, df):
         temp_df = df.copy()
         temp_df["distance"] = ((temp_df["latitude"] - lat)**2 + (temp_df["longitude"] - lon)**2)
@@ -345,18 +344,25 @@ if "prediction_location" in st.session_state and "prediction_risk" in st.session
 
     nearest_cluster = get_nearest_cluster(lat, lon, df)
 
-    # ---- Get top crime types in that cluster ----
+    # ---- Get top incident types ----
     cluster_crimes = df[df["cluster"] == nearest_cluster]["crime_type"]
     top_crimes = cluster_crimes.value_counts().head(3).index.tolist()
     crime_reason = ", ".join(top_crimes)
 
-    # ---- Add marker ----
+    # ---- Area type detection ----
+    if "Accident" in top_crimes:
+        area_type = "Accident-Prone Area"
+    else:
+        area_type = "Crime-Prone Area"
+
+    # ---- Add prediction marker ----
     folium.Marker(
         location=[lat, lon],
         popup=f"""
         <b>Predicted Location</b><br>
-        Risk Level: {risk_labels[prediction]}<br>
-        <b>Main Crimes:</b> {crime_reason}
+        <b>Area Type:</b> {area_type}<br>
+        <b>Risk Level:</b> {risk_labels[prediction]}<br>
+        <b>Main Incidents:</b> {crime_reason}
         """,
         icon=folium.Icon(color=color_map[prediction])
     ).add_to(crime_map)
