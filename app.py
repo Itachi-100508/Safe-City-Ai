@@ -203,11 +203,19 @@ df["hour"] = df["hour"].astype(int)
 st.sidebar.header("🔮 Crime Risk Prediction")
 
 latitude = st.sidebar.number_input(
-    "Enter Latitude", value=float(df["latitude"].mean())
+    "Enter Latitude",
+    value=float(df["latitude"].mean()),
+    format="%.4f",
+    step=0.0001
 )
+
 longitude = st.sidebar.number_input(
-    "Enter Longitude", value=float(df["longitude"].mean())
+    "Enter Longitude",
+    value=float(df["longitude"].mean()),
+    format="%.4f",
+    step=0.0001
 )
+
 hour = st.sidebar.slider("Select Hour of Day", 0, 23, 20)
 
 if st.sidebar.button("Predict Crime Risk"):
