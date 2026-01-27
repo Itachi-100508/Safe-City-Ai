@@ -14,10 +14,22 @@ st.markdown("""
 <style>
 
 /* Remove default spacing & scrolling */
-html, body, [data-testid="stAppViewContainer"] {
-    height: 100%;
+html, body, [data-testid="stAppViewContainer"], .stApp {
+    height: 100vh;
+    overflow: hidden !important;
+}
+
+section[data-testid="stSidebar"] {
+    height: 100vh;
+    overflow: hidden !important;
+}
+
+.block-container {
+    padding: 0rem;
+    height: 100vh;
     overflow: hidden;
 }
+
 
 .block-container {
     padding: 0rem;
@@ -45,27 +57,39 @@ header[data-testid="stHeader"]::before {
 
 /* Sidebar styling */
 section[data-testid="stSidebar"] {
-    background-color: #f5f5f5;
+    background-color: #000000 !important;
     padding: 15px;
+    border-right: 1px solid #1f2937;
 }
 
-/* Sidebar text colors */
-section[data-testid="stSidebar"] * {
-    color: #1f2937 !important;
-}
 
 /* Sidebar header */
 section[data-testid="stSidebar"] h1,
 section[data-testid="stSidebar"] h2,
 section[data-testid="stSidebar"] h3 {
-    color: #111827 !important;
+    color: white !important;
 }
 
+/* Sidebar footer text */
+.sidebar-footer {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 13px;
+}
+            
 /* Sidebar labels and text */
 section[data-testid="stSidebar"] label,
 section[data-testid="stSidebar"] p,
 section[data-testid="stSidebar"] span {
-    color: #374151 !important;
+    color: #e5e7eb !important;
+}
+
+/* Sidebar text colors for specific elements */
+section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {
+    color: #d1d5db !important;
 }
 
 /* Sidebar input fields */
@@ -137,6 +161,15 @@ section[data-testid="stSidebar"] button {
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown(
+    """
+    <div class="sidebar-footer">
+        Team – Neural Navigators ~ VSIT
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 
 st.markdown("""
 <div class="map-legend">
@@ -181,6 +214,18 @@ if st.sidebar.button("Predict Crime Risk"):
     st.sidebar.success(f"Predicted Risk Level: {risk_labels.get(prediction, 'Unknown')}")
     recommendation = patrol_recommendation(prediction)
     st.sidebar.info(f"Patrol Recommendation: {recommendation}")
+
+for _ in range(10):   # increase number to push further down
+    st.sidebar.write("")
+# Sidebar Footer (Always Visible)
+st.sidebar.markdown("---")
+st.sidebar.markdown(
+    "<p style='text-align:center; color:#9ca3af; font-size:13px;'>"
+    "Team – Neural Navigators ~ VSIT"
+    "</p>",
+    unsafe_allow_html=True
+)
+
 
 # ---------------- PREDICTIVE LOGIC ----------------
 def night_crime_ratio(df, cluster_id):
@@ -243,6 +288,6 @@ for cluster_id in df["cluster"].unique():
 
 st.components.v1.html(
     crime_map._repr_html_(),
-    height=1000,
+    height=750,
     scrolling=False
 )
