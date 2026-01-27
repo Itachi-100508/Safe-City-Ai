@@ -224,6 +224,8 @@ hour = st.sidebar.slider("Select Hour of Day", 0, 23, 20)
 if st.sidebar.button("Predict Crime Risk"):
     prediction = predict_risk(latitude, longitude, hour)
     st.session_state["prediction_location"] = (latitude, longitude)
+    st.session_state["prediction_risk"] = prediction
+
 
     risk_labels = {
         0: "Low Risk 🟢",
@@ -240,7 +242,7 @@ for _ in range(1):
 st.sidebar.markdown("---")
 st.sidebar.markdown(
     "<p style='text-align:center; color:#9ca3af; font-size:13px;'>"
-    "Team – Neural Navigators ~ VSIT 2026"
+    "Team - Neural Navigators ~ VSIT 2026"
     "</p>",
     unsafe_allow_html=True
 )
@@ -310,12 +312,27 @@ for cluster_id in df["cluster"].unique():
         popup=f"<b>{risk} Risk Area</b><br>Patrol: {patrol}"
     ).add_to(crime_map)
 
-if "prediction_location" in st.session_state:
+# Add marker for predicted location with color based on risk
+if "prediction_location" in st.session_state and "prediction_risk" in st.session_state:
     lat, lon = st.session_state["prediction_location"]
+    risk_level = st.session_state["prediction_risk"]
+
+    color_map = {
+        0: "green",   # Low Risk
+        1: "orange",  # Medium Risk
+        2: "red"      # High Risk
+    }
+
+    risk_labels = {
+        0: "Low Risk",
+        1: "Medium Risk",
+        2: "High Risk"
+    }
+
     folium.Marker(
         location=[lat, lon],
-        popup="<b>Predicted Location</b>",
-        icon=folium.Icon(color="red", icon="info-sign"),
+        popup=f"<b>Predicted Location</b><br>Risk Level: {risk_labels.get(risk_level)}",
+        icon=folium.Icon(color=color_map.get(risk_level, "blue"), icon="info-sign"),
     ).add_to(crime_map)
 
 st.components.v1.html(
