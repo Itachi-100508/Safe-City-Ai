@@ -23,6 +23,26 @@ html, body, [data-testid="stAppViewContainer"] {
     padding: 0rem;
 }
 
+/* Style the native Streamlit header bar */
+header[data-testid="stHeader"] {
+    background-color: #1f2937 !important;
+    border-bottom: 2px solid #374151;
+}
+
+/* Add custom title in the header */
+header[data-testid="stHeader"]::before {
+    content: "🚔 SafeCity - Smart Crime Mapping & Predictive App";
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    line-height: 50px;
+    z-index: 1000;
+}
+
 /* Sidebar styling */
 section[data-testid="stSidebar"] {
     background-color: #f5f5f5;
@@ -79,7 +99,7 @@ section[data-testid="stSidebar"] [data-testid="stNumberInput"] button svg {
 
 /* Main action button - Predict Crime Risk */
 section[data-testid="stSidebar"] .stButton button {
-    background-color: #d76c6c !important;
+    background-color: #ef4444 !important;
     color: white !important;
     border: none !important;
     font-weight: 600 !important;
@@ -100,19 +120,6 @@ section[data-testid="stSidebar"] button {
     color: white !important;
 }
 
-/* Floating header */
-.floating-header {
-    position: absolute;
-    top: 15px;
-    left: 270px;
-    z-index: 999;
-    background: linear-gradient(90deg,#0f172a,#111827);
-    padding: 16px 28px;
-    border-radius: 12px;
-    color: white;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-}
-
 /* Map legend */
 .map-legend {
     position: absolute;
@@ -128,17 +135,6 @@ section[data-testid="stSidebar"] button {
 }
 
 </style>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-<div class="floating-header">
-    <div style="font-size:26px;font-weight:700;">
-        🚔 SafeCity – Smart Crime Mapping & Predictive Policing
-    </div>
-    <div style="font-size:14px;opacity:0.8;">
-        🧠 Predictive Crime Intelligence (Time-based)
-    </div>
-</div>
 """, unsafe_allow_html=True)
 
 

@@ -3,8 +3,8 @@ from sklearn.ensemble import RandomForestClassifier
 import os
 import joblib
 
+# Model should be in src/ folder
 MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "risk_model.pkl")
-
 
 
 def train_risk_model(data_path):
@@ -43,8 +43,8 @@ def patrol_recommendation(risk_level):
 
 
 if __name__ == "__main__":
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    data_path = os.path.join(base_dir, "data", "crime_data.csv")
-
+    # Use the data/ folder structure
+    data_path = os.path.join("data", "crime_data.csv")
+    
     model = train_risk_model(data_path)
     print("Risk model trained and saved successfully.")

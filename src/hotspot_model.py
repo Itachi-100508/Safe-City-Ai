@@ -10,9 +10,8 @@ def find_hotspots(data_path, n_clusters=3):
     return df, kmeans.cluster_centers_
 
 if __name__ == "__main__":
-    # Get absolute path to dataset
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    data_path = os.path.join(base_dir, "data", "crime_data.csv")
-
+    # Use the data/ folder structure
+    data_path = os.path.join("data", "crime_data.csv")
+    
     df, centers = find_hotspots(data_path)
     print("Hotspot Centers:\n", centers)
