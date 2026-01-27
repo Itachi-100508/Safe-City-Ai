@@ -6,13 +6,154 @@ from src.hotspot_model import find_hotspots
 from src.risk_predictor import predict_risk, patrol_recommendation
 import os
 
-# ---------------- Page Setup ----------------
+# ---------------- PAGE CONFIG (MUST BE FIRST STREAMLIT CALL) ----------------
 st.set_page_config(page_title="SafeCity Crime Map", layout="wide")
-st.title("🚔 SafeCity – Smart Crime Mapping & Predictive Policing")
 
-# ---------------- Load Data ----------------
-base_dir = os.getcwd()
-data_path = os.path.join(base_dir, "data", "crime_data.csv")
+# ---------------- GLOBAL STYLES ----------------
+st.markdown("""
+<style>
+
+/* Remove default spacing & scrolling */
+html, body, [data-testid="stAppViewContainer"] {
+    height: 100%;
+    overflow: hidden;
+}
+
+.block-container {
+    padding: 0rem;
+}
+
+/* Sidebar styling */
+section[data-testid="stSidebar"] {
+    background-color: #f5f5f5;
+    padding: 15px;
+}
+
+/* Sidebar text colors */
+section[data-testid="stSidebar"] * {
+    color: #1f2937 !important;
+}
+
+/* Sidebar header */
+section[data-testid="stSidebar"] h1,
+section[data-testid="stSidebar"] h2,
+section[data-testid="stSidebar"] h3 {
+    color: #111827 !important;
+}
+
+/* Sidebar labels and text */
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] p,
+section[data-testid="stSidebar"] span {
+    color: #374151 !important;
+}
+
+/* Sidebar input fields */
+section[data-testid="stSidebar"] input {
+    background-color: white !important;
+    color: #1f2937 !important;
+    border: 1px solid #d1d5db !important;
+}
+
+/* Fix the +/- increment buttons - STRONGER SELECTORS */
+section[data-testid="stSidebar"] div[data-baseweb="input"] button,
+section[data-testid="stSidebar"] button[kind="stepperButton"],
+section[data-testid="stSidebar"] [data-testid="stNumberInput"] button {
+    background-color: #10b981 !important;
+    color: white !important;
+    min-width: 40px !important;
+}
+
+section[data-testid="stSidebar"] div[data-baseweb="input"] button:hover,
+section[data-testid="stSidebar"] button[kind="stepperButton"]:hover,
+section[data-testid="stSidebar"] [data-testid="stNumberInput"] button:hover {
+    background-color: #059669 !important;
+}
+
+section[data-testid="stSidebar"] div[data-baseweb="input"] button svg,
+section[data-testid="stSidebar"] button[kind="stepperButton"] svg,
+section[data-testid="stSidebar"] [data-testid="stNumberInput"] button svg {
+    fill: white !important;
+    color: white !important;
+}
+
+/* Main action button - Predict Crime Risk */
+section[data-testid="stSidebar"] .stButton button {
+    background-color: #d76c6c !important;
+    color: white !important;
+    border: none !important;
+    font-weight: 600 !important;
+    font-size: 16px !important;
+}
+
+section[data-testid="stSidebar"] .stButton button:hover {
+    background-color: #dc2626 !important;
+}
+
+section[data-testid="stSidebar"] button[kind="primary"]:hover,
+section[data-testid="stSidebar"] button[kind="primaryFormSubmit"]:hover {
+    background-color: #b91c1c !important;
+}
+
+/* All other sidebar buttons (fallback) */
+section[data-testid="stSidebar"] button {
+    color: white !important;
+}
+
+/* Floating header */
+.floating-header {
+    position: absolute;
+    top: 15px;
+    left: 270px;
+    z-index: 999;
+    background: linear-gradient(90deg,#0f172a,#111827);
+    padding: 16px 28px;
+    border-radius: 12px;
+    color: white;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+}
+
+/* Map legend */
+.map-legend {
+    position: absolute;
+    bottom: 25px;
+    right: 25px;
+    z-index: 999;
+    background-color: rgba(0,0,0,0.85);
+    padding: 14px 18px;
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<div class="floating-header">
+    <div style="font-size:26px;font-weight:700;">
+        🚔 SafeCity – Smart Crime Mapping & Predictive Policing
+    </div>
+    <div style="font-size:14px;opacity:0.8;">
+        🧠 Predictive Crime Intelligence (Time-based)
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+
+st.markdown("""
+<div class="map-legend">
+<b>Map Legend</b><br><br>
+🟥 Red Zone → High night-time crime concentration<br>
+🟨 Yellow Zone → Mixed crime pattern<br>
+🟩 Green Zone → Mostly daytime / low-risk
+</div>
+""", unsafe_allow_html=True)
+
+
+# Use the correct path structure with data/ folder
+data_path = os.path.join("data", "crime_data.csv")
 
 try:
     df, _ = find_hotspots(data_path)
@@ -23,7 +164,7 @@ except Exception as e:
 
 df["hour"] = df["hour"].astype(int)
 
-# ---------------- Sidebar: Crime Risk Prediction ----------------
+# ---------------- SIDEBAR CONTROLS ----------------
 st.sidebar.header("🔮 Crime Risk Prediction")
 
 latitude = st.sidebar.number_input(
@@ -41,13 +182,11 @@ if st.sidebar.button("Predict Crime Risk"):
         1: "Medium Risk 🟡",
         2: "High Risk 🔴"
     }
-    st.sidebar.success(
-        f"Predicted Risk Level: {risk_labels.get(prediction, 'Unknown')}"
-    )
+    st.sidebar.success(f"Predicted Risk Level: {risk_labels.get(prediction, 'Unknown')}")
     recommendation = patrol_recommendation(prediction)
     st.sidebar.info(f"Patrol Recommendation: {recommendation}")
 
-# ---------------- Predictive Logic ----------------
+# ---------------- PREDICTIVE LOGIC ----------------
 def night_crime_ratio(df, cluster_id):
     cluster_data = df[df["cluster"] == cluster_id]
     night_crimes = cluster_data[
@@ -71,22 +210,11 @@ def hotspot_recommendation(risk):
     else:
         return "LOW - Passive monitoring"
 
-# ---------------- Explanation Panel ----------------
-st.markdown("""
-### 🧠 Predictive Crime Intelligence (Time-based)
 
-🟥 **Red Zone** → High night-time crime concentration  
-🟨 **Yellow Zone** → Mixed crime pattern  
-🟩 **Green Zone** → Mostly daytime / low-risk  
-
-🚓 Patrols are **AI-recommended** based on exposure level.
-""")
-
-# ---------------- Create Map ----------------
 map_center = [df["latitude"].mean(), df["longitude"].mean()]
-crime_map = folium.Map(location=map_center, zoom_start=12)
+crime_map = folium.Map(location=map_center, zoom_start=12, control_scale=True)
 
-# ---------------- Crime Markers ----------------
+
 marker_cluster = MarkerCluster().add_to(crime_map)
 for _, row in df.iterrows():
     folium.Marker(
@@ -99,23 +227,14 @@ for _, row in df.iterrows():
         icon=folium.Icon(color="blue", icon="info-sign"),
     ).add_to(marker_cluster)
 
-# ---------------- Predictive Hotspots (ATTRACTIVE POPUP) ----------------
 for cluster_id in df["cluster"].unique():
     cluster_df = df[df["cluster"] == cluster_id]
-    center = [
-        cluster_df["latitude"].mean(),
-        cluster_df["longitude"].mean(),
-    ]
-
+    center = [cluster_df["latitude"].mean(), cluster_df["longitude"].mean()]
     ratio = night_crime_ratio(df, cluster_id)
     risk = classify_risk(ratio)
     patrol = hotspot_recommendation(risk)
 
-    color_map = {
-        "RED": "#dc2626",
-        "YELLOW": "#f59e0b",
-        "GREEN": "#16a34a"
-    }
+    color_map = {"RED": "#dc2626", "YELLOW": "#f59e0b", "GREEN": "#16a34a"}
 
     folium.Circle(
         location=center,
@@ -123,59 +242,11 @@ for cluster_id in df["cluster"].unique():
         color=risk.lower(),
         fill=True,
         fill_opacity=0.45,
-        popup=f"""
-        <div style="
-            font-family: Arial, sans-serif;
-            padding: 14px;
-            width: 230px;
-            border-radius: 14px;
-            background: linear-gradient(135deg,#111827,#1f2933);
-            color: white;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-        ">
-            <div style="font-weight:700;font-size:15px;margin-bottom:8px;">
-                🔮 Predictive Hotspot
-            </div>
-
-            <div style="
-                display:inline-block;
-                padding:5px 12px;
-                border-radius:999px;
-                font-size:12px;
-                font-weight:700;
-                margin-bottom:10px;
-                background:{color_map[risk]};
-            ">
-                {risk} RISK
-            </div>
-
-            <div style="font-size:13px;">
-                🌙 <b>Night Crime Ratio</b>
-                <div style="
-                    margin-top:4px;
-                    font-size:22px;
-                    font-weight:800;
-                ">
-                    {round(ratio, 2)}
-                </div>
-            </div>
-
-            <hr style="border:none;height:1px;background:rgba(255,255,255,0.15);margin:10px 0;">
-
-            <div style="font-size:13px;">
-                🚓 <b>Patrol Recommendation</b>
-                <div style="margin-top:6px;font-weight:700;color:#fca5a5;">
-                    {patrol}
-                </div>
-            </div>
-
-            <div style="margin-top:10px;font-size:11px;opacity:0.7;">
-                AI-generated operational insight
-            </div>
-        </div>
-        """
+        popup=f"<b>{risk} Risk Area</b><br>Patrol: {patrol}"
     ).add_to(crime_map)
 
-# ---------------- Display ----------------
-st.subheader("📍 Crime Incidents & AI-Predicted Risk Zones")
-st.components.v1.html(crime_map._repr_html_(), height=600)
+st.components.v1.html(
+    crime_map._repr_html_(),
+    height=1000,
+    scrolling=False
+)
