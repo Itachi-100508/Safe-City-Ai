@@ -190,7 +190,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# Use the correct path structure with data/ folder
+
 data_path = os.path.join("data", "crime_data.csv")
 
 try:
@@ -223,6 +223,8 @@ hour = st.sidebar.slider("Select Hour of Day", 0, 23, 20)
 
 if st.sidebar.button("Predict Crime Risk"):
     prediction = predict_risk(latitude, longitude, hour)
+    st.session_state["prediction_location"] = (latitude, longitude)
+
     risk_labels = {
         0: "Low Risk 🟢",
         1: "Medium Risk 🟡",
@@ -232,9 +234,9 @@ if st.sidebar.button("Predict Crime Risk"):
     recommendation = patrol_recommendation(prediction)
     st.sidebar.info(f"Patrol Recommendation: {recommendation}")
 
-for _ in range(1):   # increase number to push further down
+for _ in range(1): 
     st.sidebar.write("")
-# Sidebar Footer (Always Visible)
+
 st.sidebar.markdown("---")
 st.sidebar.markdown(
     "<p style='text-align:center; color:#9ca3af; font-size:13px;'>"
@@ -269,8 +271,13 @@ def hotspot_recommendation(risk):
         return "LOW - Passive monitoring"
 
 
-map_center = [df["latitude"].mean(), df["longitude"].mean()]
-crime_map = folium.Map(location=map_center, zoom_start=12, control_scale=True)
+if "prediction_location" in st.session_state:
+    map_center = st.session_state["prediction_location"]
+else:
+    map_center = [df["latitude"].mean(), df["longitude"].mean()]
+zoom_level = 15 if "prediction_location" in st.session_state else 12
+crime_map = folium.Map(location=map_center, zoom_start=zoom_level, control_scale=True)
+
 
 
 marker_cluster = MarkerCluster().add_to(crime_map)
@@ -301,6 +308,14 @@ for cluster_id in df["cluster"].unique():
         fill=True,
         fill_opacity=0.45,
         popup=f"<b>{risk} Risk Area</b><br>Patrol: {patrol}"
+    ).add_to(crime_map)
+
+if "prediction_location" in st.session_state:
+    lat, lon = st.session_state["prediction_location"]
+    folium.Marker(
+        location=[lat, lon],
+        popup="<b>Predicted Location</b>",
+        icon=folium.Icon(color="red", icon="info-sign"),
     ).add_to(crime_map)
 
 st.components.v1.html(
