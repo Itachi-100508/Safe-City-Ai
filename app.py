@@ -200,7 +200,16 @@ except Exception as e:
     st.exception(e)
     st.stop()
 
-df["hour"] = df["hour"].astype(int)
+df["hour"] = (
+    df["hour"]
+    .astype(str)          # make everything string
+    .str.strip()          # remove spaces
+    .str.replace(".0", "", regex=False)  # remove decimal if exists
+)
+
+df["hour"] = pd.to_numeric(df["hour"], errors="coerce")  # invalid → NaN
+df["hour"] = df["hour"].fillna(0).astype(int)            # fill bad values with 0
+
 
 # ---------------- SIDEBAR CONTROLS ----------------
 st.sidebar.header("🔮 Crime Risk Prediction")
@@ -356,7 +365,7 @@ if "prediction_location" in st.session_state and "prediction_risk" in st.session
         <b>Main Incidents:</b> {crime_reason}
         """,
         icon=folium.Icon(color=color_map[prediction], icon="warning-sign"),
-    ).add_to(marker_cluster)
+    ).add_to(crime_map)
 
 
 st.components.v1.html(
