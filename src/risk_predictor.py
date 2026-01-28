@@ -45,31 +45,52 @@ def predict_risk(latitude, longitude, hour):
     crime_code = model.predict(input_data)[0]
     crime_type = crime_mapping[crime_code]
 
-    # Define risk levels based on crime severity
+    # ---------------- RISK RULES ----------------
     high_risk = ["Robbery", "Assault", "Burglary"]
     medium_risk = ["Theft", "Accident"]
 
+    # Load dataset to check nearby incidents
+    data_path = os.path.join(os.path.dirname(__file__), "..", "data", "crime_data.csv")
+
+
+    df = pd.read_csv(data_path)
+
+    nearby = df[
+        (abs(df["latitude"] - latitude) < 0.01) &
+        (abs(df["longitude"] - longitude) < 0.01)
+    ]
+
+    incident_count = len(nearby)
+
     if crime_type in high_risk:
-        return 2  # High Risk
+        risk_level = "High Risk"
     elif crime_type in medium_risk:
-        return 1  # Medium Risk
+        if incident_count <= 2:
+            risk_level = "Low Risk"
+        else:
+            risk_level = "Medium Risk"
     else:
-        return 0  # Low Risk
+        risk_level = "Low Risk"
+
+    risk_map = {
+    "Low Risk": 0,
+    "Medium Risk": 1,
+    "High Risk": 2
+    }
+
+    return risk_map[risk_level]
 
 
 # ---------------- PATROL RECOMMENDATION ----------------
 def patrol_recommendation(risk_level):
-    risk_level = int(risk_level)
-
-    if risk_level == 2:
+    if risk_level == "High Risk":
         return "🚨 High patrol frequency needed"
-    elif risk_level == 1:
+    elif risk_level == "Medium Risk":
         return "👮 Moderate patrol suggested"
     else:
         return "✅ Routine patrol sufficient"
 
 
-# ---------------- RUN TRAINING IF CALLED DIRECTLY ----------------
 if __name__ == "__main__":
     data_file = os.path.join(os.path.dirname(__file__), "..", "data", "crime_data.csv")
     train_risk_model(data_file)

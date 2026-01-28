@@ -235,15 +235,18 @@ if st.sidebar.button("Predict Crime Risk"):
     st.session_state["prediction_location"] = (latitude, longitude)
     st.session_state["prediction_risk"] = prediction
 
-
     risk_labels = {
-        0: "Low Risk 🟢",
-        1: "Medium Risk 🟡",
-        2: "High Risk 🔴"
+    0: "Low Risk 🟢",
+    1: "Medium Risk 🟡",
+    2: "High Risk 🔴"
     }
-    st.sidebar.success(f"Predicted Risk Level: {risk_labels.get(prediction, 'Unknown')}")
-    recommendation = patrol_recommendation(prediction)
+
+    risk_text = risk_labels[prediction].split()[0] + " Risk"
+    st.sidebar.success(f"Predicted Risk Level: {risk_labels[prediction]}")
+
+    recommendation = patrol_recommendation(risk_text)
     st.sidebar.info(f"Patrol Recommendation: {recommendation}")
+
 
 for _ in range(1): 
     st.sidebar.write("")

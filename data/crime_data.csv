@@ -41,4 +41,6 @@ crime_id,latitude,longitude,crime_type,hour
 102,19.1060,72.8860,Accident,9
 103,19.1045,72.8840,Accident,18
 104,19.1070,72.8875,Accident,19
-105,19.1035,72.8835,Accident,22`
+105,19.1035,72.8835,Accident,22
+
+2001,19.235,72.882,Theft,10
